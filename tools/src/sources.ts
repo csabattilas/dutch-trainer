@@ -32,7 +32,8 @@ export const SOURCES: Source[] = [
     file: 'nld-eng.zip',
     approxSize: 'a few MB',
     licence: 'CC BY 2.0 FR',
-    attribution: 'Example sentences from Tatoeba (https://tatoeba.org), released under CC BY 2.0 FR.',
+    // Update when example sentences are shown in the app (Phase 2).
+    attribution: 'Word frequencies computed from Tatoeba sentences (https://tatoeba.org), released under CC BY 2.0 FR.',
     unzip: true,
   },
 ];

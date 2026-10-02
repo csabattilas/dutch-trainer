@@ -13,11 +13,11 @@ export interface Settings {
 }
 
 export const SIZES = [5, 10, 20, 30, 50];
-export const DELAYS = [1, 2, 4];
+export const DELAYS = [1, 2, 4, 10];
 
 export const DEFAULT_SETTINGS: Settings = {
   autoAdvance: 'correct',
-  delaySeconds: 2,
+  delaySeconds: 4,
   secondChance: true,
   size: 10,
   style: 'choice',

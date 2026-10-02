@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "credits": [
+    {
+      "id": "wiktextract-nl",
+      "name": "Wiktionary (via Wiktextract / kaikki.org)",
+      "url": "https://kaikki.org/dictionary/Dutch/kaikki.org-dictionary-Dutch.jsonl",
+      "licence": "CC BY-SA (Wiktionary content)",
+      "attribution": "Word data from Wiktionary (https://en.wiktionary.org), extracted with Wiktextract by Tatu Ylonen (https://kaikki.org)."
+    },
+    {
+      "id": "tatoeba-nld-eng",
+      "name": "Tatoeba (via ManyThings.org)",
+      "url": "https://www.manythings.org/anki/nld-eng.zip",
+      "licence": "CC BY 2.0 FR",
+      "attribution": "Word frequencies computed from Tatoeba sentences (https://tatoeba.org), released under CC BY 2.0 FR."
+    }
+  ]
+}

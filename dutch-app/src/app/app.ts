@@ -3,13 +3,15 @@ import { autoAdvanceDelay, grade } from './core/answer';
 import { buildSession } from './core/session';
 import { DELAYS, loadSettings, saveSettings, SIZES, type Settings } from './core/settings';
 import { review, type Progress } from './core/srs';
-import { loadProgress, saveProgress } from './core/storage';
+import { loadCredits } from './core/data';
+import { loadNoticeDismissed, loadProgress, saveNoticeDismissed, saveProgress } from './core/storage';
+import type { CreditsFile } from './data/format';
 import { askUrls, tutorPrompt } from './core/tutor-prompt';
 import type { Exercise, ExerciseModule } from './core/types';
 import { modules } from './modules/registry';
 import { ChoiceButtons, Feedback, Hint, TextArea, TextInput, WordBank, WordTiles } from './ui';
 
-type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings';
+type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about';
 
 @Component({
   imports: [ChoiceButtons, Feedback, Hint, TextArea, TextInput, WordBank, WordTiles],
@@ -23,6 +25,9 @@ export class App {
   protected readonly screen = signal<Screen>('menu');
   protected readonly settings = signal<Settings>(loadSettings());
   protected readonly progress = signal<Progress>(loadProgress());
+  protected readonly noticeDismissed = signal(loadNoticeDismissed());
+  /** undefined = not loaded yet, null = failed to load. */
+  protected readonly credits = signal<CreditsFile | null | undefined>(undefined);
 
   /** Which module (or null = mixed review) the current/last session used. */
   private lastModuleId: string | null = null;
@@ -149,6 +154,16 @@ export class App {
 
   protected openSettings(): void {
     this.screen.set('settings');
+  }
+
+  protected async openAbout(): Promise<void> {
+    this.screen.set('about');
+    if (this.credits() === undefined) this.credits.set(await loadCredits());
+  }
+
+  protected dismissNotice(): void {
+    this.noticeDismissed.set(true);
+    saveNoticeDismissed();
   }
 
   protected resetProgress(): void {

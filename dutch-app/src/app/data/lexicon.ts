@@ -24,7 +24,8 @@ export const nouns: Noun[] = [
   { nl: 'paard', en: 'horse', gender: 'het' },
   { nl: 'huis', en: 'house', gender: 'het' },
   { nl: 'boek', en: 'book', gender: 'het' },
-  { nl: 'raam', en: 'window', gender: 'het' },
+  // raam (window) was replaced: Wiktionary lists it as both de and het (de in Belgium).
+  { nl: 'bed', en: 'bed', gender: 'het' },
   { nl: 'brood', en: 'bread', gender: 'het' },
   { nl: 'hekje', en: 'little fence', gender: 'het' },
   { nl: 'kind', en: 'child', gender: 'het' },

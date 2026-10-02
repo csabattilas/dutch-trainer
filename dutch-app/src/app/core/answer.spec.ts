@@ -81,6 +81,10 @@ describe('parseSettings', () => {
     expect(parseSettings({ autoAdvance: 'sometimes', size: 7, secondChance: 'yes' })).toEqual(DEFAULT_SETTINGS);
   });
 
+  it('accepts the 10 s delay', () => {
+    expect(parseSettings({ delaySeconds: 10 }).delaySeconds).toBe(10);
+  });
+
   it('keeps valid values', () => {
     expect(
       parseSettings({ autoAdvance: 'off', delaySeconds: 4, size: 50, style: 'mixed', secondChance: false, buildMode: 'tap' }),

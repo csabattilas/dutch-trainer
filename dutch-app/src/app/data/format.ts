@@ -25,6 +25,8 @@ export interface NounEntry {
   gloss: string;
   /** Frequency rank: 1 = most common. Lower = easier. */
   rank?: number;
+  /** In the course word list (course-words.ts): exercises can prefer these. */
+  course?: boolean;
 }
 
 export interface AdjectiveEntry {
@@ -33,6 +35,7 @@ export interface AdjectiveEntry {
   inflected: string;
   gloss: string;
   rank?: number;
+  course?: boolean;
 }
 
 export interface VerbEntry {
@@ -45,7 +48,12 @@ export interface VerbEntry {
   gloss: string;
   /** For separable verbs like opruimen: { particle: 'op', root: 'ruimen' }. */
   separable?: { particle: string; root: string };
+  /** Simple past, main-clause form (separable verbs keep the particle: "ruimde op"). */
+  past?: { singular: string; plural?: string };
+  /** Past participle: gewerkt, opgeruimd. */
+  participle?: string;
   rank?: number;
+  course?: boolean;
 }
 
 export interface CreditsFile {
