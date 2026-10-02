@@ -1,0 +1,13 @@
+{
+  "name": "dutch-tools",
+  "private": true,
+  "description": "Build-time data tools for the Dutch trainer. Not part of the app bundle.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "download": "node src/download.ts",
+    "test": "node --test 'src/**/*.test.ts'"
+  }
+}

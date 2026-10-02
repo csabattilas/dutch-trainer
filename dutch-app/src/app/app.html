@@ -1,0 +1,274 @@
+<main>
+  <header class="topbar">
+    <h1>Dutch Trainer</h1>
+    @if (screen() === 'menu') {
+      <button (click)="openSettings()">⚙ Settings</button>
+    }
+  </header>
+
+  @switch (screen()) {
+    @case ('menu') {
+      <section>
+        <h2>Style</h2>
+        <div class="segmented">
+          <button
+            [class.selected]="settings().style === 'choice'"
+            (click)="updateSettings({ style: 'choice' })"
+          >
+            Multiple choice
+          </button>
+          <button
+            [class.selected]="settings().style === 'mixed'"
+            (click)="updateSettings({ style: 'mixed' })"
+          >
+            Mixed (typing &amp; building)
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Questions per session</h2>
+        <div class="segmented">
+          @for (n of sizes; track n) {
+            <button [class.selected]="settings().size === n" (click)="updateSettings({ size: n })">
+              {{ n }}
+            </button>
+          }
+        </div>
+      </section>
+
+      <section>
+        <button class="primary wide" (click)="start(null)">Mixed review</button>
+        <p class="note">Draws from every module, weakest rules first.</p>
+      </section>
+
+      <section>
+        <h2>Modules</h2>
+        @for (m of moduleCards(); track m.id) {
+          <div class="card module">
+            <div class="module-text">
+              <strong>{{ m.title }}</strong>
+              <div class="note">{{ m.description }}</div>
+              @if (m.accuracy !== null) {
+                <div class="note">Accuracy: {{ m.accuracy }}%</div>
+              }
+            </div>
+            <div class="actions">
+              <button class="primary" (click)="start(m.id)">Practise</button>
+              @if (m.canWrite) {
+                <button (click)="write(m.id)">Write</button>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      @if (skillStats().length) {
+        <section>
+          <h2>Your rules, weakest first</h2>
+          <table>
+            @for (s of skillStats(); track s.skill) {
+              <tr>
+                <td>{{ s.skill }}</td>
+                <td>{{ s.accuracy }}%</td>
+                <td>{{ s.seen }}×</td>
+              </tr>
+            }
+          </table>
+        </section>
+      }
+    }
+
+    @case ('quiz') {
+      @if (current(); as ex) {
+        <section class="card">
+          <div class="topbar">
+            <span class="progress">{{ index() + 1 }} / {{ session().length }}</span>
+            <button (click)="menu()">Menu</button>
+          </div>
+          <p class="prompt">{{ ex.prompt }}</p>
+
+          @if (ex.hints?.length) {
+            <app-hint
+              [hints]="ex.hints!"
+              [shown]="hintsShown()"
+              [disabled]="result() !== null"
+              (more)="hintsShown.update(n => n + 1)"
+            />
+          }
+
+          @if (ex.choices) {
+            <app-choice-buttons
+              [choices]="ex.choices"
+              [answer]="ex.answer"
+              [given]="result()?.given ?? null"
+              [eliminated]="eliminated()"
+              (picked)="check($event)"
+            />
+          } @else if (ex.tiles && settings().buildMode === 'tap') {
+            <app-word-tiles
+              [tiles]="ex.tiles"
+              [disabled]="result() !== null"
+              (valueChange)="typed.set($event)"
+            />
+            @if (!result()) {
+              <button class="primary" [disabled]="!typed()" (click)="check(typed())">Check</button>
+            }
+          } @else {
+            @if (ex.tiles) {
+              <app-word-bank [words]="ex.tiles" />
+            }
+            <app-text-input
+              [value]="typed()"
+              [disabled]="result() !== null"
+              (valueChange)="typed.set($event)"
+              (submitted)="result() ? next() : check(typed())"
+            />
+            @if (!result()) {
+              <button class="primary" [disabled]="!typed().trim()" (click)="check(typed())">Check</button>
+            }
+          }
+
+          @if (retrying() && !result()) {
+            <p class="retry">Not quite. You get one more try.</p>
+          }
+
+          @if (result(); as r) {
+            <app-feedback
+              [correct]="r.correct"
+              [secondTry]="r.secondTry"
+              [answer]="ex.answer"
+              [explanation]="ex.explanation"
+            />
+            <button class="primary" (click)="next()">
+              {{ index() + 1 >= session().length ? 'Finish' : 'Next' }}
+            </button>
+          }
+        </section>
+      }
+    }
+
+    @case ('write') {
+      @if (writeModule(); as m) {
+        <section class="card">
+          <div class="topbar">
+            <strong>{{ m.title }}</strong>
+            <button (click)="menu()">Menu</button>
+          </div>
+          <p class="prompt">{{ m.writing?.task }}</p>
+          <app-text-area
+            [value]="draft()"
+            placeholder="Schrijf hier…"
+            (valueChange)="onDraft($event)"
+          />
+          @if (tutorLinks(); as links) {
+            <div class="actions">
+              <a class="button primary" [href]="links.claude" target="_blank" rel="noopener noreferrer">
+                Ask Claude
+              </a>
+              <a class="button" [href]="links.google" target="_blank" rel="noopener noreferrer">
+                Ask Google AI
+              </a>
+              <button (click)="copyPrompt()">{{ copied() ? 'Copied!' : 'Copy prompt' }}</button>
+            </div>
+            <p class="note">
+              Opens in a new tab and sends your text to the service you pick. If the text
+              doesn't appear there, use Copy prompt and paste it.
+            </p>
+          } @else {
+            <p class="note">Write something, then ask an AI tutor to check it.</p>
+          }
+        </section>
+      }
+    }
+
+    @case ('settings') {
+      <section class="card">
+        <div class="topbar">
+          <strong>Settings</strong>
+          <button (click)="menu()">Menu</button>
+        </div>
+
+        <h3>After answering</h3>
+        <div class="segmented">
+          <button
+            [class.selected]="settings().autoAdvance === 'off'"
+            (click)="updateSettings({ autoAdvance: 'off' })"
+          >
+            Wait for Next
+          </button>
+          <button
+            [class.selected]="settings().autoAdvance === 'correct'"
+            (click)="updateSettings({ autoAdvance: 'correct' })"
+          >
+            Auto-next when correct
+          </button>
+          <button
+            [class.selected]="settings().autoAdvance === 'always'"
+            (click)="updateSettings({ autoAdvance: 'always' })"
+          >
+            Always auto-next
+          </button>
+        </div>
+
+        @if (settings().autoAdvance !== 'off') {
+          <h3>Delay</h3>
+          <div class="segmented">
+            @for (s of delays; track s) {
+              <button
+                [class.selected]="settings().delaySeconds === s"
+                (click)="updateSettings({ delaySeconds: s })"
+              >
+                {{ s }} s
+              </button>
+            }
+          </div>
+          <p class="note">Wrong answers wait twice as long, so you can read the explanation.</p>
+        }
+
+        <h3>Second chance</h3>
+        <div class="segmented">
+          <button [class.selected]="settings().secondChance" (click)="updateSettings({ secondChance: true })">
+            On
+          </button>
+          <button [class.selected]="!settings().secondChance" (click)="updateSettings({ secondChance: false })">
+            Off
+          </button>
+        </div>
+        <p class="note">
+          One more try after a wrong answer (not for questions with only two options). Right on
+          the second try doesn't add to your score, and that rule comes back sooner.
+        </p>
+
+        <h3>Sentence building (Mixed style)</h3>
+        <div class="segmented">
+          <button
+            [class.selected]="settings().buildMode === 'type'"
+            (click)="updateSettings({ buildMode: 'type' })"
+          >
+            Type with word bank
+          </button>
+          <button
+            [class.selected]="settings().buildMode === 'tap'"
+            (click)="updateSettings({ buildMode: 'tap' })"
+          >
+            Tap the words
+          </button>
+        </div>
+        <p class="note">Type: the words are shown, you type the sentence yourself.</p>
+
+        <h3>Progress</h3>
+        <button (click)="resetProgress()">Reset progress</button>
+      </section>
+    }
+
+    @case ('done') {
+      <section class="card">
+        <h2>Done</h2>
+        <p class="prompt">{{ score() }} / {{ session().length }} correct</p>
+        <button class="primary" (click)="start()">Practise again</button>
+        <button (click)="menu()">Menu</button>
+      </section>
+    }
+  }
+</main>
