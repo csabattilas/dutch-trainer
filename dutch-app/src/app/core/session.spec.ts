@@ -22,7 +22,8 @@ describe('buildSession choiceOnly', () => {
   });
 
   it('includes the time and inversion modules, converted from typed/tile', () => {
-    const mods = new Set(session.map((e) => e.module));
+    const s = buildSession(modules, {}, mulberry32(7), 30, { moduleIds: ['time', 'inversion'], choiceOnly: true });
+    const mods = new Set(s.map((e) => e.module));
     expect(mods.has('time')).toBe(true);
     expect(mods.has('inversion')).toBe(true);
   });
@@ -41,6 +42,40 @@ describe('hints', () => {
     for (const e of all.filter((x) => x.answer.includes(' '))) {
       for (const h of e.hints!) expect(h.toLowerCase()).not.toContain(e.answer.toLowerCase());
     }
+  });
+});
+
+describe('variety', () => {
+  const inversionOnly = { moduleIds: ['inversion'], choiceOnly: true };
+
+  it('has no repeated question when the module has enough unique ones', () => {
+    const s = buildSession(modules, {}, mulberry32(21), 10, inversionOnly);
+    const keys = s.map((e) => `${e.prompt}|${e.answer}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('mixes rules instead of grouping them: never 3 of the same rule in a row', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const skills = buildSession(modules, {}, mulberry32(seed), 10, inversionOnly).map((e) => e.skill);
+      for (let i = 2; i < skills.length; i++) {
+        expect(skills[i] === skills[i - 1] && skills[i] === skills[i - 2], `seed ${seed}: ${skills}`).toBe(false);
+      }
+    }
+  });
+
+  it('still includes a rule that is known and not due', () => {
+    const now = 1_000_000;
+    const progress = { 'inversion/other': { box: 3, due: now + 1e9, seen: 5, correct: 5 } };
+    const s = buildSession(modules, progress, mulberry32(3), 10, inversionOnly, now);
+    expect(s.some((e) => e.skill === 'inversion/other')).toBe(true);
+  });
+
+  it('puts new and due rules first', () => {
+    const now = 1_000_000;
+    const notDue = { box: 3, due: now + 1e9, seen: 5, correct: 5 };
+    const progress = { 'inversion/time': notDue, 'inversion/place': notDue, 'inversion/jij-no-t': notDue };
+    const s = buildSession(modules, progress, mulberry32(8), 10, inversionOnly, now);
+    expect(s[0].skill).toBe('inversion/other');
   });
 });
 
