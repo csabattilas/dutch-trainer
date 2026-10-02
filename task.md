@@ -7,6 +7,15 @@ thousands of questions per module to files; every question has a fixed ID and a 
 (`ok` / `needs-review` / `hidden`); the CMS corrects those files; the app only picks and
 schedules. This makes every question correctable, reviewable and testable.
 
+**Languages:**
+- App: Angular / TypeScript. Only loads, picks, schedules and shows questions.
+- Step 1, rule-based questions (the bulk): TypeScript tool, reusing the existing rules and tests.
+- Step 2, real sentences: Python + spaCy (Dutch model) to find and check Tatoeba sentences
+  that truly match a topic (word types, verb position, separable verbs). Gives a few thousand
+  natural sentences; spaCy analyses sentences, it doesn't invent questions.
+- Both write the same JSON question format (shared JSON Schema) into the same bank.
+- Build speed is not a concern: tools run once per data update on the Mac, not in the app.
+
 ## 1. Question bank from rules + the word list
 
 Goal: `tools/src/build-questions.ts` writes `public/data/questions/<module>.json` using
@@ -42,8 +51,10 @@ Matching sentences found in the 85k Dutch–English pairs:
 | Feelings / weather words | ~1,300 / ~390 | blank out the word |
 | leuk / lekker | ~525 / ~100 | blank out the word |
 
-- [ ] Pattern matchers per topic in `build-questions`, checked against the lexicon
-      (e.g. is the word after "die" really a noun?)
+- [ ] Check the licence of the spaCy Dutch model before using it
+- [ ] Python tool (`tools/harvest/`) with spaCy: per-topic matchers using part-of-speech
+      tags and sentence structure (e.g. is "die" a demonstrative or a relative pronoun?),
+      cross-checked against the lexicon
 - [ ] Fixed ID per item = Tatoeba sentence id + topic; status starts `needs-review`
 - [ ] Keep Tatoeba attribution per sentence; update the credits text ("example sentences")
 - [ ] Review report like the lexicon one: counts, examples, what was rejected and why
