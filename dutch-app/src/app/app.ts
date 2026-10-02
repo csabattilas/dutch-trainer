@@ -4,6 +4,7 @@ import { buildSession } from './core/session';
 import { DELAYS, loadSettings, saveSettings, SIZES, type Settings } from './core/settings';
 import { review, type Progress } from './core/srs';
 import { loadCredits } from './core/data';
+import { flag, loadReports, reportsToText, saveReports, type FlaggedQuestion } from './core/reports';
 import { loadNoticeDismissed, loadProgress, saveNoticeDismissed, saveProgress } from './core/storage';
 import type { CreditsFile } from './data/format';
 import { askUrls, tutorPrompt } from './core/tutor-prompt';
@@ -11,7 +12,7 @@ import type { Exercise, ExerciseModule } from './core/types';
 import { modules } from './modules/registry';
 import { ChoiceButtons, Feedback, Hint, TextArea, TextInput, WordBank, WordTiles } from './ui';
 
-type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about';
+type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about' | 'reports';
 
 @Component({
   imports: [ChoiceButtons, Feedback, Hint, TextArea, TextInput, WordBank, WordTiles],
@@ -26,6 +27,11 @@ export class App {
   protected readonly settings = signal<Settings>(loadSettings());
   protected readonly progress = signal<Progress>(loadProgress());
   protected readonly noticeDismissed = signal(loadNoticeDismissed());
+  /** Questions flagged as possibly wrong, kept on this device until exported. */
+  protected readonly reports = signal<FlaggedQuestion[]>(loadReports());
+  /** The current question has been reported. */
+  protected readonly reported = signal(false);
+  protected readonly reportsCopied = signal(false);
   /** undefined = not loaded yet, null = failed to load. */
   protected readonly credits = signal<CreditsFile | null | undefined>(undefined);
 
@@ -161,6 +167,52 @@ export class App {
     if (this.credits() === undefined) this.credits.set(await loadCredits());
   }
 
+  /** Flag the current question. The note is optional; Cancel aborts. */
+  protected reportCurrent(): void {
+    const exercise = this.current();
+    if (!exercise || this.reported()) return;
+    this.clearTimer(); // don't auto-advance away from the question being reported
+    const note = prompt('What looks wrong? (optional)');
+    if (note === null) return;
+    const given = this.result()?.given ?? (this.typed() || this.eliminated()[0]);
+    this.reports.update((list) => {
+      const next = [...list, flag(exercise, given, note)];
+      saveReports(next);
+      return next;
+    });
+    this.reported.set(true);
+  }
+
+  protected openReports(): void {
+    this.reportsCopied.set(false);
+    this.screen.set('reports');
+  }
+
+  protected async copyReports(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(reportsToText(this.reports()));
+      this.reportsCopied.set(true);
+    } catch {
+      this.reportsCopied.set(false);
+    }
+  }
+
+  protected downloadReports(): void {
+    const blob = new Blob([JSON.stringify(this.reports(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dutch-trainer-reports-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected clearReports(): void {
+    if (!confirm('Delete all reported questions from this device?')) return;
+    this.reports.set([]);
+    saveReports([]);
+  }
+
   protected dismissNotice(): void {
     this.noticeDismissed.set(true);
     saveNoticeDismissed();
@@ -203,6 +255,7 @@ export class App {
     this.hintsShown.set(0);
     this.retrying.set(false);
     this.eliminated.set([]);
+    this.reported.set(false);
   }
 
   private clearTimer(): void {

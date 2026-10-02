@@ -92,8 +92,47 @@
       }
 
       <footer>
+        @if (reports().length) {
+          <button class="link" (click)="openReports()">Reported questions ({{ reports().length }})</button>
+        }
         <button class="link" (click)="openAbout()">Privacy, credits &amp; disclaimer</button>
       </footer>
+    }
+
+    @case ('reports') {
+      <section class="card">
+        <div class="topbar">
+          <strong>Reported questions</strong>
+          <button (click)="menu()">Menu</button>
+        </div>
+        @if (reports().length) {
+          <p class="note">
+            Saved only on this device. Copy them into a chat, or download the file, to get the
+            questions checked and fixed.
+          </p>
+          <div class="actions">
+            <button class="primary" (click)="copyReports()">{{ reportsCopied() ? 'Copied!' : 'Copy all' }}</button>
+            <button (click)="downloadReports()">Download file</button>
+            <button (click)="clearReports()">Clear all</button>
+          </div>
+          <ul class="report-list">
+            @for (r of reports(); track r.at) {
+              <li>
+                <strong>{{ r.prompt }}</strong>
+                <div class="note">App's answer: {{ r.answer }}</div>
+                @if (r.given) {
+                  <div class="note">Your answer: {{ r.given }}</div>
+                }
+                @if (r.note) {
+                  <div>“{{ r.note }}”</div>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="note">Nothing reported. Use “⚑ Report” on a question that looks wrong.</p>
+        }
+      </section>
     }
 
     @case ('about') {
@@ -117,6 +156,10 @@
             Your progress and settings are stored only in <strong>this browser on this
             device</strong> (local storage). They are never sent anywhere. You can delete them with
             "Reset progress" in Settings or by clearing this site's data in your browser.
+          </li>
+          <li>
+            Questions you report with "⚑ Report" are also kept only on this device, until you copy
+            or download them yourself.
           </li>
           <li>
             The app is hosted on GitHub Pages. GitHub logs visitors' IP addresses for security
@@ -155,7 +198,12 @@
         <section class="card">
           <div class="topbar">
             <span class="progress">{{ index() + 1 }} / {{ session().length }}</span>
-            <button (click)="menu()">Menu</button>
+            <div class="actions">
+              <button class="link" [disabled]="reported()" (click)="reportCurrent()">
+                {{ reported() ? 'Reported ✓' : '⚑ Report' }}
+              </button>
+              <button (click)="menu()">Menu</button>
+            </div>
           </div>
           <p class="prompt">{{ ex.prompt }}</p>
 
