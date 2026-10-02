@@ -259,9 +259,15 @@
               [answer]="ex.answer"
               [explanation]="ex.explanation"
             />
-            <button class="primary" (click)="next()">
-              {{ index() + 1 >= session().length ? 'Finish' : 'Next' }}
-            </button>
+            <div class="actions">
+              <button class="primary" (click)="next()">
+                {{ index() + 1 >= session().length ? 'Finish' : 'Next' }}
+              </button>
+              <!-- Right where you see the verdict: the moment you'd disagree with it. -->
+              <button [disabled]="reported()" (click)="reportCurrent()">
+                {{ reported() ? 'Reported ✓' : '⚑ This looks wrong' }}
+              </button>
+            </div>
           }
         </section>
       }

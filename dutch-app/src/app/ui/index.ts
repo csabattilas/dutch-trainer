@@ -7,6 +7,7 @@
 export { ChoiceButtons } from './choice-buttons';
 export { Feedback } from './feedback';
 export { Hint } from './hint';
+export { NoteDialog, openNoteDialog, type NoteDialogData } from './note-dialog';
 export { TextArea } from './text-area';
 export { TextInput } from './text-input';
 export { WordBank } from './word-bank';

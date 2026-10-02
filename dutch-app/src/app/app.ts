@@ -1,4 +1,5 @@
-import { Component, computed, signal } from '@angular/core';
+import { Dialog } from '@angular/cdk/dialog';
+import { Component, computed, inject, signal } from '@angular/core';
 import { autoAdvanceDelay, grade } from './core/answer';
 import { buildSession } from './core/session';
 import { DELAYS, loadSettings, saveSettings, SIZES, type Settings } from './core/settings';
@@ -10,7 +11,7 @@ import type { CreditsFile } from './data/format';
 import { askUrls, tutorPrompt } from './core/tutor-prompt';
 import type { Exercise, ExerciseModule } from './core/types';
 import { modules } from './modules/registry';
-import { ChoiceButtons, Feedback, Hint, TextArea, TextInput, WordBank, WordTiles } from './ui';
+import { ChoiceButtons, Feedback, Hint, openNoteDialog, TextArea, TextInput, WordBank, WordTiles } from './ui';
 
 type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about' | 'reports';
 
@@ -21,6 +22,7 @@ type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about' | 'repor
   templateUrl: './app.html',
 })
 export class App {
+  private readonly dialog = inject(Dialog);
   protected readonly sizes = SIZES;
   protected readonly delays = DELAYS;
   protected readonly screen = signal<Screen>('menu');
@@ -168,11 +170,16 @@ export class App {
   }
 
   /** Flag the current question. The note is optional; Cancel aborts. */
-  protected reportCurrent(): void {
+  protected async reportCurrent(): Promise<void> {
     const exercise = this.current();
     if (!exercise || this.reported()) return;
     this.clearTimer(); // don't auto-advance away from the question being reported
-    const note = prompt('What looks wrong? (optional)');
+    const note = await openNoteDialog(this.dialog, {
+      title: 'Report this question',
+      lines: [`Question: ${exercise.prompt}`, `App's answer: ${exercise.answer}`],
+      placeholder: 'What looks wrong? (optional)',
+      confirm: 'Save report',
+    });
     if (note === null) return;
     const given = this.result()?.given ?? (this.typed() || this.eliminated()[0]);
     this.reports.update((list) => {
@@ -207,8 +214,13 @@ export class App {
     URL.revokeObjectURL(url);
   }
 
-  protected clearReports(): void {
-    if (!confirm('Delete all reported questions from this device?')) return;
+  protected async clearReports(): Promise<void> {
+    const ok = await openNoteDialog(this.dialog, {
+      title: 'Clear reported questions?',
+      lines: ['Copy or download them first if you still want them checked.'],
+      confirm: 'Delete reports',
+    });
+    if (ok === null) return;
     this.reports.set([]);
     saveReports([]);
   }
@@ -218,8 +230,13 @@ export class App {
     saveNoticeDismissed();
   }
 
-  protected resetProgress(): void {
-    if (!confirm('Delete all your progress? This cannot be undone.')) return;
+  protected async resetProgress(): Promise<void> {
+    const ok = await openNoteDialog(this.dialog, {
+      title: 'Reset progress?',
+      lines: ['This deletes all your progress on this device. It cannot be undone.'],
+      confirm: 'Delete progress',
+    });
+    if (ok === null) return;
     this.progress.set({});
     saveProgress({});
   }

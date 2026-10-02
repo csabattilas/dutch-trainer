@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 
-/** Multi-line Dutch writing box: no autocorrect/capitalisation, so the learner's own
- *  mistakes reach the tutor unchanged. */
+/** Multi-line writing box: no autocorrect/capitalisation, so the learner's own
+ *  mistakes reach the tutor unchanged. Also used for notes in the report dialog. */
 @Component({
   selector: 'app-text-area',
   template: `

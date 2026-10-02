@@ -1,3 +1,6 @@
+/* Positioning and backdrop for CDK overlays (used by ui/note-dialog). */
+@import '@angular/cdk/overlay-prebuilt.css';
+
 /* Design tokens: the single place to change the look of the app.
    Components must use these variables, never hard-coded colours or sizes. */
 :root {
@@ -45,6 +48,11 @@
     --color-wrong-bg: #7f1d1d;
     --color-wrong-border: #f87171;
   }
+}
+
+/* Dialog backdrop: dark enough to separate the dialog from the page in both themes. */
+.cdk-overlay-dark-backdrop {
+  background: rgb(0 0 0 / 0.6);
 }
 
 body {
