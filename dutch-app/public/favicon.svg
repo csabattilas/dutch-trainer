@@ -1,9 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Tulip on the app's accent orange (same as the color-accent token). -->
-  <rect width="64" height="64" rx="14" fill="#f97316"/>
-  <path d="M32 33v21" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-  <path d="M32 51c-8-1-13-6-14-14 8 1 13 6 14 14z" fill="#fff"/>
-  <path d="M32 46c6-1 10-5 11-11-6 1-10 5-11 11z" fill="#fff"/>
-  <path d="M19 13c3 5 7 7 13 7s10-2 13-7c1 12-3 22-13 22S18 25 19 13z" fill="#fff"/>
-  <path d="M25 24 32 8l7 16z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Tulip on the app's accent orange, petal tips in the Dutch flag colours
+       (red, white, blue). Also the source for the PWA icons (tools: npm run icons). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+    <!-- each petal: flag colour at the tip, fading into the white petal -->
+    <linearGradient id="tip-red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ae1c28"/>
+      <stop offset="0.28" stop-color="#ae1c28"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffedd5"/>
+    </linearGradient>
+    <linearGradient id="tip-white" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.4" stop-color="#ffffff"/>
+      <stop offset="0.75" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="tip-blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#21468b"/>
+      <stop offset="0.28" stop-color="#21468b"/>
+      <stop offset="0.55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffedd5"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- stem and leaves -->
+  <path d="M256 300 C 258 350, 254 395, 246 446" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/>
+  <path d="M248 428 C 192 420, 152 380, 140 318 C 200 326, 240 368, 248 428 Z" fill="#fff"/>
+  <path d="M254 394 C 296 386, 330 356, 342 312 C 298 318, 266 346, 254 394 Z" fill="#ffedd5"/>
+
+  <!-- flower: middle petal behind, two side petals in front, cup at the bottom -->
+  <path d="M256 84 C 300 124, 324 172, 322 226 C 320 266, 294 292, 256 296 C 218 292, 192 266, 190 226 C 188 172, 212 124, 256 84 Z" fill="url(#tip-white)"/>
+  <path d="M164 124 C 206 146, 240 190, 248 244 C 254 284, 238 306, 212 306 C 174 302, 152 270, 150 226 C 148 186, 152 152, 164 124 Z" fill="url(#tip-red)"/>
+  <path d="M348 124 C 306 146, 272 190, 264 244 C 258 284, 274 306, 300 306 C 338 302, 360 270, 362 226 C 364 186, 360 152, 348 124 Z" fill="url(#tip-blue)"/>
+  <path d="M152 222 C 156 286, 198 320, 256 320 C 314 320, 356 286, 360 222 C 326 262, 186 262, 152 222 Z" fill="#fff"/>
 </svg>

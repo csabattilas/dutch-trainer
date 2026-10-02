@@ -9,6 +9,7 @@
   "scripts": {
     "download": "node src/download.ts",
     "build:lexicon": "node src/build-lexicon.ts",
+    "icons": "node src/build-icons.ts",
     "test": "node --test 'src/**/*.test.ts'"
   }
 }

@@ -6,6 +6,13 @@
     }
   </header>
 
+  @if (updateReady()) {
+    <div class="notice update">
+      <span>A new version of Dutch Trainer is ready.</span>
+      <button class="primary" (click)="reload()">Reload</button>
+    </div>
+  }
+
   @switch (screen()) {
     @case ('menu') {
       @if (!noticeDismissed()) {

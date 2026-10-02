@@ -51,6 +51,13 @@ section {
   border-radius: var(--radius-lg);
 }
 
+.notice.update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .notice .actions {
   margin-top: var(--space-3);
 }

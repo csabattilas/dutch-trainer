@@ -1,5 +1,7 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SwUpdate } from '@angular/service-worker';
 import { autoAdvanceDelay, grade } from './core/answer';
 import { buildSession } from './core/session';
 import { DELAYS, loadSettings, saveSettings, SIZES, type Settings } from './core/settings';
@@ -23,6 +25,22 @@ type Screen = 'menu' | 'quiz' | 'done' | 'write' | 'settings' | 'about' | 'repor
 })
 export class App {
   private readonly dialog = inject(Dialog);
+  /** A newer version was downloaded in the background and is ready after a reload. */
+  protected readonly updateReady = signal(false);
+
+  constructor() {
+    // Optional: not provided in unit tests; disabled in dev mode.
+    const updates = inject(SwUpdate, { optional: true });
+    if (updates?.isEnabled) {
+      updates.versionUpdates.pipe(takeUntilDestroyed()).subscribe((event) => {
+        if (event.type === 'VERSION_READY') this.updateReady.set(true);
+      });
+    }
+  }
+
+  protected reload(): void {
+    document.location.reload();
+  }
   protected readonly sizes = SIZES;
   protected readonly delays = DELAYS;
   protected readonly screen = signal<Screen>('menu');
