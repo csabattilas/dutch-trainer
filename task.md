@@ -2,25 +2,34 @@
 
 Roadmap for Dutch Trainer. Order matters: each step builds on the one before.
 
-## 1. Connect the word list to the app
+**Approach: a pre-generated question bank, not on-the-fly generation.** A build tool writes
+thousands of questions per module to files; every question has a fixed ID and a status
+(`ok` / `needs-review` / `hidden`); the CMS corrects those files; the app only picks and
+schedules. This makes every question correctable, reviewable and testable.
 
-Goal: modules draw words from `public/data/lexicon.json` (~2,000 nouns, ~700 adjectives,
-~1,300 verbs) instead of the small hand-typed lists, so they produce hundreds of questions.
+## 1. Question bank from rules + the word list
 
-- [ ] Load `lexicon.json` at startup; keep the hand-typed seed as a fallback while it loads
-      or if it fails (offline first visit)
-- [ ] Pass the lexicon to modules: `generate(rng, count, ctx)` with `ctx.lexicon`
-- [ ] Demonstratives: all nouns with confirmed de/het (29 unique questions → thousands)
-- [ ] Adjective endings: lexicon nouns × adjectives with their -e form
-- [ ] Prefer course words (`course: true`) and common words (low `rank`) when picking
-- [ ] Stable question IDs for generated questions (rule + words), needed by step 3
+Goal: `tools/src/build-questions.ts` writes `public/data/questions/<module>.json` using
+`public/data/lexicon.json` (~2,000 nouns, ~700 adjectives, ~1,300 verbs).
+
+- [ ] Move the rule generators where the tool can run them (shared code, used at build time)
+- [ ] Enumerate exhaustively instead of randomly: every noun × near/far (demonstratives),
+      nouns × adjectives × article contexts (adjective endings), adverbs × verbs × subjects
+      (inversion), all clock times, … with a sensible cap per module
+- [ ] Fixed ID per question from its ingredients (rule + words), stable across rebuilds
+- [ ] Status per question: rule-generated starts `ok` (correct by construction)
+- [ ] Validate every question at build time: answer in choices exactly once, no duplicates,
+      hints don't leak the answer; report counts per module + a random sample to spot-check
+- [ ] Prefer course words (`course: true`) and common words (low `rank`)
+- [ ] App: load a module's file when practising it (lazy), pick from it with the SRS;
+      remove runtime generation
 - [ ] Tap-to-translate: tap a word in a question to see its meaning, gender, plural
-- [ ] Measure: every module can fill 50 unique questions (test), except bank modules
 
-## 2. Harvest real sentences from Tatoeba (Phase 2)
+## 2. Harvest real sentences from Tatoeba into the same bank
 
-Goal: natural, human-written sentences as exercises, with English translations.
-Wrong options are generated from the real sentence by applying a known mistake.
+Goal: natural, human-written sentences as exercises, with English translations, added to
+the module files. Wrong options are generated from the real sentence by applying a known
+mistake.
 
 Matching sentences found in the 85k Dutch–English pairs:
 
@@ -33,24 +42,25 @@ Matching sentences found in the 85k Dutch–English pairs:
 | Feelings / weather words | ~1,300 / ~390 | blank out the word |
 | leuk / lekker | ~525 / ~100 | blank out the word |
 
-- [ ] `tools/src/build-sentences.ts`: pattern matchers per topic, checked against the
-      lexicon (e.g. is the word after "die" really a noun?), output `public/data/sentences.json`
-- [ ] Stable ID per item = Tatoeba sentence id + topic
+- [ ] Pattern matchers per topic in `build-questions`, checked against the lexicon
+      (e.g. is the word after "die" really a noun?)
+- [ ] Fixed ID per item = Tatoeba sentence id + topic; status starts `needs-review`
 - [ ] Keep Tatoeba attribution per sentence; update the credits text ("example sentences")
 - [ ] Review report like the lexicon one: counts, examples, what was rejected and why
-- [ ] Modules use harvested sentences alongside generated ones
 - [ ] Show the English translation as a hint or a "translate this" exercise
 
 ## 3. Corrections "CMS" (no backend: git is the database)
 
-Goal: fix or hide wrong questions for good, from the app, without a server.
+Goal: review and fix the question bank from the app, without a server.
 
-- [ ] `content/corrections.json` in the repo: per question ID → hide, or fix answer /
-      choices / explanation; applied when the app loads
-- [ ] Review screen (dev mode only): lists ⚑ reports and newly harvested sentences;
+- [ ] `content/corrections.json` in the repo: per question ID → status (ok / hidden) or a
+      fixed answer / choices / explanation. `build-questions` applies it on every rebuild,
+      so corrections survive regeneration
+- [ ] Review screen (dev mode only): ⚑ reports + `needs-review` questions in batches;
       mark OK / hide / fix → downloads an updated `corrections.json`
-- [ ] Commit the file (or hand it to Claude) → deploy publishes the correction
-- [ ] Harvested sentences can start as "unreviewed" and only go live once approved
+- [ ] Commit the file (or hand it to Claude) → rebuild + deploy publishes the correction
+- [ ] Nobody reviews 20,000 questions by hand: rule-generated ones are trusted and
+      spot-checked, harvested ones reviewed in batches, ⚑ reports catch the rest
 - [ ] Recurring mistakes in one rule become a code fix + a test, not many corrections
 
 ## Also on the list
