@@ -1,4 +1,4 @@
-# Tests, builds and publishes the app to GitHub Pages (https://csabattilas.github.io/dutch/)
+# Tests, builds and publishes the app to GitHub Pages (https://csabattilas.github.io/dutch-trainer/)
 # on every push to main. Can also be started by hand from the Actions tab.
 name: Deploy to GitHub Pages
 
@@ -42,9 +42,9 @@ jobs:
         working-directory: tools
         run: npm test
 
-      # The app is served from /dutch/, not the domain root.
+      # The app is served from /dutch-trainer/, not the domain root.
       - name: Build
-        run: npx ng build --base-href /dutch/
+        run: npx ng build --base-href /dutch-trainer/
 
       - uses: actions/configure-pages@v6
 
